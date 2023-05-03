@@ -1,25 +1,36 @@
 version: '3.3'
 
 services:
+  nginx:
+    build: ./nginx
+    ports:
+      - 80:80
+    depends_on:
+      - web
+    volumes:
+      - static_volume:/home/eletrader/web/staticfiles
+      - media_volume:/home/eletrader/web/mediafiles
   web:
     build: ./eletrader
-    command: bash -c "python3 manage.py runserver 0.0.0.0:8000 --settings eletrader.settings.pro  && python3 manage.py migrate --settings eletrader.settings.pro"
-    volumes:
-      - ./eletrader/:/home/szymon/eletrader/
-    ports:
-      - 8000:8000
-        #env_file:
-        #- ./.env.dev
+    expose:
+      - 8000
     depends_on:
       - db
+    volumes:
+      - static_volume:/home/eletrader/web/staticfiles
+      - media_volume:/home/eletrader/web/mediafiles
   db:
-    image: postgres:13.0-alpine
+    build: ./postgresql
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+      - ./postgresql/backups:/backups
     environment:
       - POSTGRES_USER=eletrader_user
       - POSTGRES_PASSWORD=eletrader_password
       - POSTGRES_DB=eletrader
+      - BACKUP_LIVING_MONTHS=6
 
 volumes:
   postgres_data:
+  static_volume:
+  media_volume:
